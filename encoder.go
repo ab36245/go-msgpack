@@ -1,8 +1,6 @@
 package msgpack
 
 import (
-	"errors"
-	"fmt"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -15,76 +13,51 @@ func NewEncoder() *Encoder {
 }
 
 type Encoder struct {
-	buf  []byte
-	errs []error
-	mp   *msgpack.Encoder
+	buf []byte
+	mp  *msgpack.Encoder
 }
 
 func (e *Encoder) Bytes() []byte {
 	return e.buf
 }
 
-func (e *Encoder) Err() error {
-	if len(e.errs) == 0 {
-		return nil
-	}
-	return fmt.Errorf("msgpack encoding: %w", errors.Join(e.errs...))
+func (e *Encoder) PutArrayLength(value int) error {
+	return e.mp.EncodeArrayLen(value)
 }
 
-func (e *Encoder) Errs() []error {
-	return e.errs
+func (e *Encoder) PutBool(value bool) error {
+	return e.mp.EncodeBool(value)
 }
 
-func (e *Encoder) PutArrayLength(value int) {
-	e.error(e.mp.EncodeArrayLen(value))
+func (e *Encoder) PutBytes(value []byte) error {
+	return e.mp.EncodeBytes(value)
 }
 
-func (e *Encoder) PutBool(value bool) {
-	e.error(e.mp.EncodeBool(value))
+func (e *Encoder) PutFloat(value float64) error {
+	return e.mp.EncodeFloat64(value)
 }
 
-func (e *Encoder) PutBytes(value []byte) {
-	e.error(e.mp.EncodeBytes(value))
+func (e *Encoder) PutInt(value int64) error {
+	return e.mp.EncodeInt(value)
 }
 
-func (e *Encoder) PutFloat(value float64) {
-	e.error(e.mp.EncodeFloat64(value))
+func (e *Encoder) PutMapLength(value int) error {
+	return e.mp.EncodeMapLen(value)
 }
 
-func (e *Encoder) PutInt(value int64) {
-	e.error(e.mp.EncodeInt(value))
+func (e *Encoder) PutString(value string) error {
+	return e.mp.EncodeString(value)
 }
 
-func (e *Encoder) PutMapLength(value int) {
-	e.error(e.mp.EncodeMapLen(value))
+func (e *Encoder) PutTime(value time.Time) error {
+	return e.mp.EncodeTime(value)
 }
 
-func (e *Encoder) PutString(value string) {
-	e.error(e.mp.EncodeString(value))
-}
-
-func (e *Encoder) PutTime(value time.Time) {
-	e.error(e.mp.EncodeTime(value))
-}
-
-func (e *Encoder) PutUint(value uint64) {
-	e.error(e.mp.EncodeUint(value))
-}
-
-func (e *Encoder) Result() ([]byte, error) {
-	if len(e.errs) > 0 {
-		return nil, e.Err()
-	}
-	return e.Bytes(), nil
+func (e *Encoder) PutUint(value uint64) error {
+	return e.mp.EncodeUint(value)
 }
 
 func (e *Encoder) Write(p []byte) (int, error) {
 	e.buf = append(e.buf, p...)
 	return len(p), nil
-}
-
-func (e *Encoder) error(err error) {
-	if err != nil {
-		e.errs = append(e.errs, err)
-	}
 }

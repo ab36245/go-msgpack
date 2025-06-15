@@ -2,7 +2,6 @@ package msgpack
 
 import (
 	"bytes"
-	"errors"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
@@ -16,77 +15,41 @@ func NewDecoder(data []byte) *Decoder {
 }
 
 type Decoder struct {
-	errs []error
-	mp   *msgpack.Decoder
+	mp *msgpack.Decoder
 }
 
-func (d *Decoder) Err() error {
-	if len(d.errs) == 0 {
-		return nil
-	}
-	return DecodeError.Wrap(errors.Join(d.errs...))
+func (d *Decoder) GetArrayLength() (int, error) {
+	return d.mp.DecodeArrayLen()
 }
 
-func (d *Decoder) Errs() []error {
-	return d.errs
+func (d *Decoder) GetBool() (bool, error) {
+	return d.mp.DecodeBool()
 }
 
-func (d *Decoder) GetArrayLength() int {
-	value, err := d.mp.DecodeArrayLen()
-	d.error(err)
-	return value
+func (d *Decoder) GetBytes() ([]byte, error) {
+	return d.mp.DecodeBytes()
 }
 
-func (d *Decoder) GetBool() bool {
-	value, err := d.mp.DecodeBool()
-	d.error(err)
-	return value
+func (d *Decoder) GetFloat() (float64, error) {
+	return d.mp.DecodeFloat64()
 }
 
-func (d *Decoder) GetBytes() []byte {
-	value, err := d.mp.DecodeBytes()
-	d.error(err)
-	return value
+func (d *Decoder) GetInt() (int64, error) {
+	return d.mp.DecodeInt64()
 }
 
-func (d *Decoder) GetFloat() float64 {
-	value, err := d.mp.DecodeFloat64()
-	d.error(err)
-	return value
+func (d *Decoder) GetMapLength() (int, error) {
+	return d.mp.DecodeMapLen()
 }
 
-func (d *Decoder) GetInt() int64 {
-	value, err := d.mp.DecodeInt64()
-	d.error(err)
-	return value
+func (d *Decoder) GetString() (string, error) {
+	return d.mp.DecodeString()
 }
 
-func (d *Decoder) GetMapLength() int {
-	value, err := d.mp.DecodeMapLen()
-	d.error(err)
-	return value
+func (d *Decoder) GetTime() (time.Time, error) {
+	return d.mp.DecodeTime()
 }
 
-func (d *Decoder) GetString() string {
-	value, err := d.mp.DecodeString()
-	d.error(err)
-	return value
-}
-
-func (d *Decoder) GetTime() time.Time {
-	value, err := d.mp.DecodeTime()
-	d.error(err)
-	return value
-}
-
-func (d *Decoder) GetUint() uint64 {
-	value, err := d.mp.DecodeUint64()
-	d.error(err)
-	return value
-}
-
-func (d *Decoder) error(err error) {
-	if err != nil {
-		d.errs = append(d.errs, err)
-	}
+func (d *Decoder) GetUint() (uint64, error) {
+	return d.mp.DecodeUint64()
 }
