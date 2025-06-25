@@ -53,3 +53,19 @@ func (d *Decoder) GetTime() (time.Time, error) {
 func (d *Decoder) GetUint() (uint64, error) {
 	return d.mp.DecodeUint64()
 }
+
+func (d *Decoder) IfNil() (bool, error) {
+	next, err := d.mp.PeekCode()
+	if err != nil {
+		return false, err
+	}
+	// TODO This is a horrible hack!
+	if next != 0xC0 {
+		return false, nil
+	}
+	err = d.mp.DecodeNil()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

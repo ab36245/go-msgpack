@@ -51,6 +51,10 @@ func (e *Encoder) PutMapLength(value int) error {
 	return e.mp.EncodeMapLen(value)
 }
 
+func (e *Encoder) PutNil() error {
+	return e.mp.EncodeNil()
+}
+
 func (e *Encoder) PutString(value string) error {
 	return e.mp.EncodeString(value)
 }
