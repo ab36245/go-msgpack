@@ -1,13 +1,19 @@
 package msgpack
 
 import (
+	"slices"
 	"time"
 
 	"github.com/vmihailenco/msgpack/v5"
 )
 
 func NewEncoder() *Encoder {
+	return NewEncoderWithPrefix(nil)
+}
+
+func NewEncoderWithPrefix(prefix []byte) *Encoder {
 	e := &Encoder{}
+	e.buf = slices.Clone(prefix)
 	e.mp = msgpack.NewEncoder(e)
 	return e
 }
