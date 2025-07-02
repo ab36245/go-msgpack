@@ -11,99 +11,77 @@ import (
 )
 
 func TestEncodeArrayLengths(t *testing.T) {
-	// fixarray
-	{
-		l1 := uint32(10)
+	run := func(n int, e string) {
+		l1 := uint32(n)
 		me := msgpack.NewEncoder()
 		me.PutArrayLength(l1)
 		v := me.Bytes()
-		e := `
-			|1 bytes
-			|    0000 9a
-		`
 		encodeTest(t, v, e, false)
 	}
+
+	// fixarray
+	run(10, `
+	    |1 bytes
+		|    0000 9a
+	`)
 
 	// 16 bit
-	{
-		l1 := uint32(30000)
-		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
-		v := me.Bytes()
-		e := `
-		    |3 bytes
-            |    0000 dc 75 30
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(30000, `
+		|3 bytes
+		|    0000 dc 75 30
+	`)
 
 	// 32bit
-	{
-		l1 := uint32(80000)
-		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
-		v := me.Bytes()
-		e := `
-			|5 bytes
-			|    0000 dd 00 01 38 80
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(80000, `
+		|5 bytes
+		|    0000 dd 00 01 38 80
+	`)
 }
 
 func TestEncodeBools(t *testing.T) {
-	b1 := true
-	b2 := false
-	me := msgpack.NewEncoder()
-	me.PutBool(b1)
-	me.PutBool(b2)
-	v := me.Bytes()
-	e := `
-			|2 bytes
-			|    0000 c3 c2
-		`
-	encodeTest(t, v, e, false)
+	run := func(b bool, e string) {
+		me := msgpack.NewEncoder()
+		me.PutBool(b)
+		v := me.Bytes()
+		encodeTest(t, v, e, false)
+	}
+
+	run(true, `
+		|1 bytes
+		|    0000 c3
+	`)
+	run(false, `
+		|1 bytes
+		|    0000 c2
+	`)
 }
 
 func TestEncodeBytes(t *testing.T) {
-	// 8 bit length
-	{
-		b := make([]byte, 240)
+	run := func(n int, e string) {
+		b := make([]byte, n)
 		me := msgpack.NewEncoder()
 		me.PutBytes(b)
 		v := me.Bytes()
-		e := `
-			|242 bytes
-            |    0000 c4 f0 00 00
-		`
 		encodeTest(t, v, e, true)
+
 	}
+	// 8 bit length
+	run(240, `
+		|242 bytes
+		|    0000 c4 f0 00 00
+	`)
 
 	// 16 bit length
-	{
-		b := make([]byte, 2400)
-		me := msgpack.NewEncoder()
-		me.PutBytes(b)
-		v := me.Bytes()
-		e := `
-			|2403 bytes
-            |    0000 c5 09 60 00 00
-		`
-		encodeTest(t, v, e, true)
-	}
+	run(2400, `
+		|2403 bytes
+		|    0000 c5 09 60 00 00
+	`)
 
 	// 32 bit length
-	{
-		b := make([]byte, 240000)
-		me := msgpack.NewEncoder()
-		me.PutBytes(b)
-		v := me.Bytes()
-		e := `
-			|240005 bytes
-            |    0000 c6 00 03 a9 80 00 00
-		`
-		encodeTest(t, v, e, true)
-	}
+	run(240000, `
+		|240005 bytes
+		|    0000 c6 00 03 a9 80 00 00
+	`)
 
 	// Over 32 bit length
 	{
@@ -117,158 +95,131 @@ func TestEncodeBytes(t *testing.T) {
 	}
 }
 
-func TestEncodeFloats(t *testing.T) {
-	// float 32
-	{
-		i1 := float32(85.125)
-		i2 := float32(85.3)
-		i3 := float32(0.00085125)
+func TestEncodeFloat32s(t *testing.T) {
+	run := func(f float32, e string) {
 		me := msgpack.NewEncoder()
-		me.PutFloat32(i1)
-		me.PutFloat32(i2)
-		me.PutFloat32(i3)
+		me.PutFloat32(f)
 		v := me.Bytes()
-		e := `
-			|15 bytes
-            |    0000 ca 42 aa 40 00 ca 42 aa 99 9a ca 3a 5f 26 6c
-		`
 		encodeTest(t, v, e, false)
 	}
 
-	// float 64
-	{
-		i1 := float64(85.125)
-		i2 := float64(85.3)
-		i3 := float64(0.00085125)
+	run(85.125, `
+		|5 bytes
+		|    0000 ca 42 aa 40 00
+	`)
+	run(85.3, `
+		|5 bytes
+		|    0000 ca 42 aa 99 9a
+	`)
+	run(0.00085125, `
+		|5 bytes
+		|    0000 ca 3a 5f 26 6c
+	`)
+}
+
+func TestEncodeFloat64s(t *testing.T) {
+	run := func(f float64, e string) {
 		me := msgpack.NewEncoder()
-		me.PutFloat64(i1)
-		me.PutFloat64(i2)
-		me.PutFloat64(i3)
+		me.PutFloat64(f)
 		v := me.Bytes()
-		e := `
-			|27 bytes
-            |    0000 cb 40 55 48 00 00 00 00 00 cb 40 55 53 33 33 33
-            |    0016 33 33 cb 3f 4b e4 cd 74 92 79 14
-		`
 		encodeTest(t, v, e, false)
 	}
+
+	run(85.125, `
+		|9 bytes
+		|    0000 cb 40 55 48 00 00 00 00 00
+	`)
+	run(85.3, `
+		|9 bytes
+		|    0000 cb 40 55 53 33 33 33 33 33
+	`)
+	run(0.00085125, `
+		|9 bytes
+		|    0000 cb 3f 4b e4 cd 74 92 79 14
+	`)
 }
 
 func TestEncodeInts(t *testing.T) {
-	// fixint
-	{
-		i1 := int64(69)
-		i2 := int64(-11)
+	run := func(i int64, e string) {
 		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
+		me.PutInt(i)
 		v := me.Bytes()
-		e := `
-			|2 bytes
-			|    0000 45 f5
-		`
 		encodeTest(t, v, e, false)
 	}
+
+	// fixint
+	run(69, `
+		|1 bytes
+		|    0000 45
+	`)
+	run(-11, `
+		|1 bytes
+		|    0000 f5
+	`)
 
 	// 8 bit
-	{
-		i1 := int64(-42)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		v := me.Bytes()
-		e := `
-			|2 bytes
-			|    0000 d0 d6
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(-42, `
+		|2 bytes
+		|    0000 d0 d6
+	`)
 
 	// 16 bit
-	{
-		i1 := int64(259)
-		i2 := int64(-259)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		v := me.Bytes()
-		e := `
-			|6 bytes
-			|    0000 d1 01 03 d1 fe fd
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(259, `
+		|3 bytes
+		|    0000 d1 01 03
+	`)
+	run(-259, `
+		|3 bytes
+		|    0000 d1 fe fd
+	`)
 
 	// 32 bit
-	{
-		i1 := int64(65538)
-		i2 := int64(-65538)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		v := me.Bytes()
-		e := `
-			|10 bytes
-			|    0000 d2 00 01 00 02 d2 ff fe ff fe
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(65538, `
+		|5 bytes
+		|    0000 d2 00 01 00 02
+	`)
+	run(-65538, `
+		|5 bytes
+		|    0000 d2 ff fe ff fe
+	`)
 
 	// 64 bit
-	{
-		i1 := int64(4294967299)
-		i2 := int64(-4294967299)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		v := me.Bytes()
-		e := `
-			|18 bytes
-			|    0000 d3 00 00 00 01 00 00 00 03 d3 ff ff ff fe ff ff
-			|    0016 ff fd
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(4294967299, `
+		|9 bytes
+		|    0000 d3 00 00 00 01 00 00 00 03
+	`)
+	run(-4294967299, `
+		|9 bytes
+		|    0000 d3 ff ff ff fe ff ff ff fd
+	`)
 }
 
 func TestEncodeMapLengths(t *testing.T) {
-	// fixmap
-	{
-		l1 := uint32(10)
+	run := func(n int, e string) {
+		l := uint32(n)
 		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
+		me.PutMapLength(l)
 		v := me.Bytes()
-		e := `
-			|1 bytes
-			|    0000 8a
-		`
 		encodeTest(t, v, e, false)
 	}
+
+	// fixmap
+	run(10, `
+		|1 bytes
+		|    0000 8a
+	`)
 
 	// 16 bit
-	{
-		l1 := uint32(30000)
-		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
-		v := me.Bytes()
-		e := `
-		    |3 bytes
-            |    0000 de 75 30
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(30000, `
+		|3 bytes
+		|    0000 de 75 30
+	`)
 
 	// 32bit
-	{
-		l1 := uint32(80000)
-		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
-		v := me.Bytes()
-		e := `
-			|5 bytes
-			|    0000 df 00 01 38 80
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(80000, `
+		|5 bytes
+		|    0000 df 00 01 38 80
+	`)
 }
 
 func TestEncodeNil(t *testing.T) {
@@ -284,57 +235,36 @@ func TestEncodeNil(t *testing.T) {
 
 func TestEncodeStrings(t *testing.T) {
 	base := "hi!"
-	// fixstr
-	{
-		s := strings.Repeat(base, 10)
+	run := func(n int, e string) {
+		s := strings.Repeat(base, n)
 		me := msgpack.NewEncoder()
 		me.PutString(s)
 		v := me.Bytes()
-		e := `
-			|31 bytes
-            |    0000 be 68 69 21
-		`
 		encodeTest(t, v, e, true)
 	}
 
-	// 8 bit length
-	{
-		s := strings.Repeat(base, 80)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		v := me.Bytes()
-		e := `
-			|242 bytes
-            |    0000 d9 f0 68 69 21
-		`
-		encodeTest(t, v, e, true)
-	}
+	// fixstr
+	run(10, `
+		|31 bytes
+		|    0000 be 68 69 21
+	`)
+
+	run(80, `
+		|242 bytes
+		|    0000 d9 f0 68 69 21
+	`)
 
 	// 16 bit length
-	{
-		s := strings.Repeat(base, 800)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		v := me.Bytes()
-		e := `
-			|2403 bytes
-            |    0000 da 09 60 68 69 21
-		`
-		encodeTest(t, v, e, true)
-	}
+	run(800, `
+		|2403 bytes
+		|    0000 da 09 60 68 69 21
+	`)
 
 	// 32 bit length
-	{
-		s := strings.Repeat(base, 80000)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		v := me.Bytes()
-		e := `
-			|240005 bytes
-            |    0000 db 00 03 a9 80 68 69 21
-		`
-		encodeTest(t, v, e, true)
-	}
+	run(80000, `
+		|240005 bytes
+		|    0000 db 00 03 a9 80 68 69 21
+	`)
 
 	// Over 32 bit length
 	{
@@ -350,112 +280,69 @@ func TestEncodeStrings(t *testing.T) {
 
 func TestEncodeTimes(t *testing.T) {
 	loc, _ := time.LoadLocation("UTC")
+	run := func(d time.Time, e string) {
+		me := msgpack.NewEncoder()
+		me.PutTime(d)
+		v := me.Bytes()
+		encodeTest(t, v, e, false)
+	}
 
 	// timestamp32
-	{
-		d := time.Date(1997, 8, 28, 0, 0, 0, 0, loc)
-		me := msgpack.NewEncoder()
-		me.PutTime(d)
-		v := me.Bytes()
-		e := `
-			|6 bytes
-			|    0000 d6 ff 34 04 bf 80
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(time.Date(1997, 8, 28, 0, 0, 0, 0, loc), `
+		|6 bytes
+		|    0000 d6 ff 34 04 bf 80
+	`)
 
 	// timestamp64
-	{
-		d := time.Date(1995, 9, 12, 0, 0, 0, 420, loc)
-		me := msgpack.NewEncoder()
-		me.PutTime(d)
-		v := me.Bytes()
-		e := `
-			|10 bytes
-            |    0000 d7 ff 00 00 06 90 30 54 cd 80
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(time.Date(1995, 9, 12, 0, 0, 0, 420, loc), `
+		|10 bytes
+		|    0000 d7 ff 00 00 06 90 30 54 cd 80
+	`)
 
 	// timestamp96
-	{
-		d := time.Date(1961, 10, 19, 0, 0, 0, 420, loc)
-		me := msgpack.NewEncoder()
-		me.PutTime(d)
-		v := me.Bytes()
-		e := `
-			|15 bytes
-            |    0000 c7 0c ff 00 00 01 a4 ff ff ff ff f0 92 32 00
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(time.Date(1961, 10, 19, 0, 0, 0, 420, loc), `
+		|15 bytes
+		|    0000 c7 0c ff 00 00 01 a4 ff ff ff ff f0 92 32 00
+	`)
 }
 
 func TestEncodeUints(t *testing.T) {
-	// fixint
-	{
-		i1 := uint64(69)
+	run := func(i uint64, e string) {
 		me := msgpack.NewEncoder()
-		me.PutUint(i1)
+		me.PutUint(i)
 		v := me.Bytes()
-		e := `
-			|1 bytes
-			|    0000 45
-		`
 		encodeTest(t, v, e, false)
 	}
+
+	// fixint
+	run(69, `
+		|1 bytes
+		|    0000 45
+	`)
 
 	// 8 bit
-	{
-		i1 := uint64(130)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		v := me.Bytes()
-		e := `
-			|2 bytes
-			|    0000 cc 82
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(130, `
+		|2 bytes
+		|    0000 cc 82
+	`)
 
 	// 16 bit
-	{
-		i1 := uint64(259)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		v := me.Bytes()
-		e := `
-			|3 bytes
-			|    0000 cd 01 03
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(259, `
+		|3 bytes
+		|    0000 cd 01 03
+	`)
 
 	// 32 bit
-	{
-		i1 := uint64(65538)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		v := me.Bytes()
-		e := `
-			|5 bytes
-            |    0000 ce 00 01 00 02
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(65538, `
+		|5 bytes
+		|    0000 ce 00 01 00 02
+	`)
 
 	// 64 bit
-	{
-		i1 := uint64(4294967299)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		v := me.Bytes()
-		e := `
-		    |9 bytes
-            |    0000 cf 00 00 00 01 00 00 00 03
-		`
-		encodeTest(t, v, e, false)
-	}
+	run(4294967299, `
+		|9 bytes
+		|    0000 cf 00 00 00 01 00 00 00 03
+	`)
 }
 
 func encodeTest(t *testing.T, v []byte, e string, prefix bool) {

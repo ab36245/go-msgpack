@@ -10,54 +10,36 @@ import (
 )
 
 func TestDecodeArrayLengths(t *testing.T) {
-	// fixarray
-	{
-		l1 := uint32(10)
+	run := func(n int) {
+		l := uint32(n)
 		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
+		me.PutArrayLength(l)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetArrayLength()
-		decodeTest(t, v1, l1)
+		v, _ := md.GetArrayLength()
+		decodeTest(t, v, l)
 	}
 
-	// 16 bit
-	{
-		l1 := uint32(30000)
-		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetArrayLength()
-		decodeTest(t, v1, l1)
-	}
-
-	// 32bit
-	{
-		l1 := uint32(80000)
-		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetArrayLength()
-		decodeTest(t, v1, l1)
-	}
+	run(10)    // fixarray
+	run(30000) // 16 bit
+	run(80000) // 32bit
 }
 
 func TestDecodeBools(t *testing.T) {
-	b1 := true
-	b2 := false
-	me := msgpack.NewEncoder()
-	me.PutBool(b1)
-	me.PutBool(b2)
-	md := msgpack.NewDecoder(me.Bytes())
-	v1, _ := md.GetBool()
-	decodeTest(t, v1, b1)
-	v2, _ := md.GetBool()
-	decodeTest(t, v2, b2)
+	run := func(b bool) {
+		me := msgpack.NewEncoder()
+		me.PutBool(b)
+		md := msgpack.NewDecoder(me.Bytes())
+		v, _ := md.GetBool()
+		decodeTest(t, v, b)
+	}
+
+	run(true)
+	run(false)
 }
 
 func TestDecodeBytes(t *testing.T) {
-	// 8 bit length
-	{
-		b := make([]byte, 240)
+	run := func(n int) {
+		b := make([]byte, n)
 		me := msgpack.NewEncoder()
 		me.PutBytes(b)
 		md := msgpack.NewDecoder(me.Bytes())
@@ -65,163 +47,72 @@ func TestDecodeBytes(t *testing.T) {
 		decodeTest(t, len(v), len(b))
 	}
 
-	// 16 bit length
-	{
-		b := make([]byte, 2400)
-		me := msgpack.NewEncoder()
-		me.PutBytes(b)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetBytes()
-		decodeTest(t, len(v), len(b))
-	}
-
-	// 32 bit length
-	{
-		b := make([]byte, 240000)
-		me := msgpack.NewEncoder()
-		me.PutBytes(b)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetBytes()
-		decodeTest(t, len(v), len(b))
-	}
+	run(240)    // 8 bit length
+	run(2400)   // 16 bit length
+	run(240000) // 32 bit length
 }
 
-func TestDecodeFloats(t *testing.T) {
-	// float 32
-	{
-		i1 := float32(85.125)
-		i2 := float32(85.3)
-		i3 := float32(0.00085125)
+func TestDecodeFloat32s(t *testing.T) {
+	run := func(f float32) {
 		me := msgpack.NewEncoder()
-		me.PutFloat32(i1)
-		me.PutFloat32(i2)
-		me.PutFloat32(i3)
+		me.PutFloat32(f)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetFloat()
-		decodeTest(t, v1, float64(i1))
-		v2, _ := md.GetFloat()
-		decodeTest(t, v2, float64(i2))
-		v3, _ := md.GetFloat()
-		decodeTest(t, v3, float64(i3))
+		v, _ := md.GetFloat()
+		decodeTest(t, v, float64(f))
 	}
 
-	// float 64
-	{
-		i1 := float64(85.125)
-		i2 := float64(85.3)
-		i3 := float64(0.00085125)
+	run(85.125)
+	run(85.3)
+	run(0.00085125)
+}
+
+func TestDecodeFloat64s(t *testing.T) {
+	run := func(f float64) {
 		me := msgpack.NewEncoder()
-		me.PutFloat64(i1)
-		me.PutFloat64(i2)
-		me.PutFloat64(i3)
+		me.PutFloat64(f)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetFloat()
-		decodeTest(t, v1, i1)
-		v2, _ := md.GetFloat()
-		decodeTest(t, v2, i2)
-		v3, _ := md.GetFloat()
-		decodeTest(t, v3, i3)
+		v, _ := md.GetFloat()
+		decodeTest(t, v, f)
 	}
+
+	run(85.125)
+	run(85.3)
+	run(0.00085125)
 }
 
 func TestDecodeInts(t *testing.T) {
-	// fixint
-	{
-		i1 := int64(69)
-		i2 := int64(-11)
+	run := func(i int64) {
 		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
+		me.PutInt(i)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetInt()
-		decodeTest(t, v1, i1)
-		v2, _ := md.GetInt()
-		decodeTest(t, v2, i2)
+		v, _ := md.GetInt()
+		decodeTest(t, v, i)
 	}
 
-	// 8 bit
-	{
-		i1 := int64(-42)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetInt()
-		decodeTest(t, v1, i1)
-	}
-
-	// 16 bit
-	{
-		i1 := int64(259)
-		i2 := int64(-259)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetInt()
-		decodeTest(t, v1, i1)
-		v2, _ := md.GetInt()
-		decodeTest(t, v2, i2)
-	}
-
-	// 32 bit
-	{
-		i1 := int64(65538)
-		i2 := int64(-65538)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetInt()
-		decodeTest(t, v1, i1)
-		v2, _ := md.GetInt()
-		decodeTest(t, v2, i2)
-	}
-
-	// 64 bit
-	{
-		i1 := int64(4294967299)
-		i2 := int64(-4294967299)
-		me := msgpack.NewEncoder()
-		me.PutInt(i1)
-		me.PutInt(i2)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetInt()
-		decodeTest(t, v1, i1)
-		v2, _ := md.GetInt()
-		decodeTest(t, v2, i2)
-	}
+	run(69)          // fixint
+	run(-11)         // fixint
+	run(-42)         // 8 bit
+	run(259)         // 16 bit
+	run(-259)        // 16 bit
+	run(65538)       // 32 bit
+	run(-65538)      // 32 bit
+	run(4294967299)  // 64 bit
+	run(-4294967299) // 64 bit
 }
 
 func TestDecodeMapLengths(t *testing.T) {
-	// fixmap
-	{
-		l1 := uint32(10)
+	run := func(n int) {
+		l := uint32(n)
 		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
+		me.PutMapLength(l)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetMapLength()
-		decodeTest(t, v1, l1)
-	}
+		v, _ := md.GetMapLength()
+		decodeTest(t, v, l)
 
-	// 16 bit
-	{
-		l1 := uint32(30000)
-		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetMapLength()
-		decodeTest(t, v1, l1)
 	}
-
-	// 32bit
-	{
-		l1 := uint32(80000)
-		me := msgpack.NewEncoder()
-		me.PutMapLength(l1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetMapLength()
-		decodeTest(t, v1, l1)
-	}
+	run(10)    // fixmap
+	run(30000) // 16 bit
+	run(80000) // 32bit
 }
 
 func TestDecodeNil(t *testing.T) {
@@ -262,9 +153,8 @@ func TestDecodeNil(t *testing.T) {
 
 func TestDecodeStrings(t *testing.T) {
 	base := "hi!"
-	// fixstr
-	{
-		s := strings.Repeat(base, 10)
+	run := func(n int) {
+		s := strings.Repeat(base, n)
 		me := msgpack.NewEncoder()
 		me.PutString(s)
 		md := msgpack.NewDecoder(me.Bytes())
@@ -272,43 +162,15 @@ func TestDecodeStrings(t *testing.T) {
 		decodeTest(t, v, s)
 	}
 
-	// 8 bit length
-	{
-		s := strings.Repeat(base, 80)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetString()
-		decodeTest(t, v, s)
-	}
-
-	// 16 bit length
-	{
-		s := strings.Repeat(base, 800)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetString()
-		decodeTest(t, v, s)
-	}
-
-	// 32 bit length
-	{
-		s := strings.Repeat(base, 80000)
-		me := msgpack.NewEncoder()
-		me.PutString(s)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetString()
-		decodeTest(t, v, s)
-	}
+	run(10)    // fixstr
+	run(80)    // 8 bit length
+	run(800)   // 16 bit length
+	run(80000) // 32 bit length
 }
 
 func TestDecodeTime(t *testing.T) {
 	loc, _ := time.LoadLocation("UTC")
-
-	// timestamp32
-	{
-		d := time.Date(1997, 8, 28, 0, 0, 0, 0, loc)
+	run := func(d time.Time) {
 		me := msgpack.NewEncoder()
 		me.PutTime(d)
 		md := msgpack.NewDecoder(me.Bytes())
@@ -316,77 +178,25 @@ func TestDecodeTime(t *testing.T) {
 		decodeTest(t, v, d)
 	}
 
-	// timestamp64
-	{
-		d := time.Date(1995, 9, 12, 0, 0, 0, 420, loc)
-		me := msgpack.NewEncoder()
-		me.PutTime(d)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetTime()
-		decodeTest(t, v, d)
-	}
-
-	// timestamp96
-	{
-		d := time.Date(1961, 10, 19, 0, 0, 0, 420, loc)
-		me := msgpack.NewEncoder()
-		me.PutTime(d)
-		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetTime()
-		decodeTest(t, v, d)
-	}
+	run(time.Date(1997, 8, 28, 0, 0, 0, 0, loc))    // timestamp32
+	run(time.Date(1995, 9, 12, 0, 0, 0, 420, loc))  // timestamp64
+	run(time.Date(1961, 10, 19, 0, 0, 0, 420, loc)) // timestamp96
 }
 
 func TestDecodeUints(t *testing.T) {
-	// fixint
-	{
-		i1 := uint64(69)
+	run := func(u uint64) {
 		me := msgpack.NewEncoder()
-		me.PutUint(i1)
+		me.PutUint(u)
 		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetUint()
-		decodeTest(t, v1, i1)
+		v, _ := md.GetUint()
+		decodeTest(t, v, u)
 	}
 
-	// 8 bit
-	{
-		i1 := uint64(130)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetUint()
-		decodeTest(t, v1, i1)
-	}
-
-	// 16 bit
-	{
-		i1 := uint64(259)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetUint()
-		decodeTest(t, v1, i1)
-	}
-
-	// 32 bit
-	{
-		i1 := uint64(65538)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetUint()
-		decodeTest(t, v1, i1)
-	}
-
-	// 64 bit
-	{
-		i1 := uint64(4294967299)
-		me := msgpack.NewEncoder()
-		me.PutUint(i1)
-		md := msgpack.NewDecoder(me.Bytes())
-		v1, _ := md.GetUint()
-		decodeTest(t, v1, i1)
-	}
+	run(69)         // fixint
+	run(130)        // 8 bit
+	run(259)        // 16 bit
+	run(65538)      // 32 bit
+	run(4294967299) // 64 bit
 }
 
 func decodeTest(t *testing.T, v any, e any) {

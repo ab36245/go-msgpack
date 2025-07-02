@@ -86,9 +86,6 @@ func (d *Decoder) GetBytes() ([]byte, error) {
 	default:
 		return nil, invalid("byte slice", b)
 	}
-	if err != nil {
-		return nil, err
-	}
 	return d.reader.readBytes(size)
 }
 
@@ -215,9 +212,6 @@ func (d *Decoder) GetString() (string, error) {
 		default:
 			return "", invalid("string", b)
 		}
-	}
-	if err != nil {
-		return "", err
 	}
 	bytes, err := d.reader.readBytes(size)
 	if err != nil {
