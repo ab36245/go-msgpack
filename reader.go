@@ -44,19 +44,22 @@ func (r *reader) readFloat64() (float64, error) {
 
 func (r *reader) readInt8() (int64, error) {
 	return read(&r.bytes, 1, func(bytes []byte) int64 {
-		return int64(bytes[0])
+		i := int8(bytes[0])
+		return int64(i)
 	})
 }
 
 func (r *reader) readInt16() (int64, error) {
 	return read(&r.bytes, 2, func(bytes []byte) int64 {
-		return int64(binary.BigEndian.Uint16(bytes))
+		i := int16(binary.BigEndian.Uint16(bytes))
+		return int64(i)
 	})
 }
 
 func (r *reader) readInt32() (int64, error) {
 	return read(&r.bytes, 4, func(bytes []byte) int64 {
-		return int64(binary.BigEndian.Uint32(bytes))
+		i := int32(binary.BigEndian.Uint32(bytes))
+		return int64(i)
 	})
 }
 

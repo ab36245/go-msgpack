@@ -3,70 +3,112 @@ package test
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/ab36245/go-msgpack"
 )
 
+func TestDecodeArrayLengths(t *testing.T) {
+	t.Fatal("not implemented")
+}
+
+func TestDecodeBools(t *testing.T) {
+	t.Fatal("not implemented")
+}
+
+func TestDecodeBytes(t *testing.T) {
+	t.Fatal("not implemented")
+}
+
+func TestDecodeFloats(t *testing.T) {
+	t.Fatal("not implemented")
+}
+
 func TestDecodeInts(t *testing.T) {
 	// fixint
 	{
+		i1 := int64(69)
+		i2 := int64(-11)
 		me := msgpack.NewEncoder()
-		me.PutInt(69)
-		me.PutInt(-11)
+		me.PutInt(i1)
+		me.PutInt(i2)
 		md := msgpack.NewDecoder(me.Bytes())
-		v, _ := md.GetInt()
-		decodeTest(t, v, 69)
-		v, _ = md.GetInt()
-		decodeTest(t, v, -11)
+		v1, _ := md.GetInt()
+		decodeTest(t, v1, i1)
+		v2, _ := md.GetInt()
+		decodeTest(t, v2, i2)
+	}
+
+	// 8 bit
+	{
+		i1 := int64(-42)
+		me := msgpack.NewEncoder()
+		me.PutInt(i1)
+		md := msgpack.NewDecoder(me.Bytes())
+		v1, _ := md.GetInt()
+		decodeTest(t, v1, i1)
+	}
+
+	// 16 bit
+	{
+		i1 := int64(259)
+		i2 := int64(-259)
+		me := msgpack.NewEncoder()
+		me.PutInt(i1)
+		me.PutInt(i2)
+		md := msgpack.NewDecoder(me.Bytes())
+		v1, _ := md.GetInt()
+		decodeTest(t, v1, i1)
+		v2, _ := md.GetInt()
+		decodeTest(t, v2, i2)
+	}
+
+	// 32 bit
+	{
+		i1 := int64(65538)
+		i2 := int64(-65538)
+		me := msgpack.NewEncoder()
+		me.PutInt(i1)
+		me.PutInt(i2)
+		md := msgpack.NewDecoder(me.Bytes())
+		v1, _ := md.GetInt()
+		decodeTest(t, v1, i1)
+		v2, _ := md.GetInt()
+		decodeTest(t, v2, i2)
+	}
+
+	// 64 bit
+	{
+		i1 := int64(4294967299)
+		i2 := int64(-4294967299)
+		me := msgpack.NewEncoder()
+		me.PutInt(i1)
+		me.PutInt(i2)
+		md := msgpack.NewDecoder(me.Bytes())
+		v1, _ := md.GetInt()
+		decodeTest(t, v1, i1)
+		v2, _ := md.GetInt()
+		decodeTest(t, v2, i2)
 	}
 }
 
-func TestDecodeNil(t *testing.T) {
-	en := 69
-	es := "follows nil"
-	me := msgpack.NewEncoder()
-	me.PutInt(en)
-	me.PutNil()
-	me.PutString(es)
-
-	md := msgpack.NewDecoder(me.Bytes())
-
-	vb, _ := md.IfNil()
-	eb := false
-	decodeTest(t, vb, eb)
-
-	vn, _ := md.GetInt()
-	decodeTest(t, vn, int64(en))
-
-	vb, _ = md.IfNil()
-	eb = true
-	decodeTest(t, vb, eb)
-
-	vs, _ := md.GetString()
-	decodeTest(t, vs, es)
+func TestDecodeMapLengths(t *testing.T) {
+	t.Fatal("not implemented")
 }
 
-func TestDecodeString(t *testing.T) {
-	e := "malaka was here"
-	me := msgpack.NewEncoder()
-	me.PutString(e)
-	md := msgpack.NewDecoder(me.Bytes())
+func TestDecodeNil(t *testing.T) {
+	t.Fatal("not implemented")
+}
 
-	v, _ := md.GetString()
-	decodeTest(t, v, e)
+func TestDecodeStrings(t *testing.T) {
+	t.Fatal("not implemented")
 }
 
 func TestDecodeTime(t *testing.T) {
-	e := "1997-08-28"
-	me := msgpack.NewEncoder()
-	d, _ := time.Parse(time.DateOnly, "1997-08-28")
-	me.PutTime(d)
-	md := msgpack.NewDecoder(me.Bytes())
+	t.Fatal("not implemented")
+}
 
-	d, _ = md.GetTime()
-	v := d.Format(time.DateOnly)
-	decodeTest(t, v, e)
+func TestDecodeUints(t *testing.T) {
+	t.Fatal("not implemented")
 }
 
 func decodeTest(t *testing.T, v any, e any) {

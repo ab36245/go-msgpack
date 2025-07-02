@@ -24,9 +24,9 @@ func (e *Encoder) Clear() {
 }
 
 func (e *Encoder) PutArrayLength(v uint32) {
-	if v < size4 {
+	if v <= mask4 {
 		e.writer.writeByte(byte(0x90 | v))
-	} else if v < size16 {
+	} else if v <= mask16 {
 		e.writer.writeByte(0xdc)
 		e.writer.writeUint16(uint16(v))
 	} else {
@@ -43,49 +43,61 @@ func (e *Encoder) PutBool(v bool) {
 	}
 }
 
-func (e *Encoder) PutFloat(v float64) {
-	// TODO: work out if and when encoding a float32 is acceptable!
-	e.writer.writeByte(0xcb)
-	e.writer.writeFloat64(v)
-}
-
 func (e *Encoder) PutBytes(v []byte) error {
 	n := len(v)
-	if n < size8 {
+	if n <= mask8 {
 		e.writer.writeByte(0xc4)
-	} else if n < size16 {
+		e.writer.writeUint8(uint8(n))
+	} else if n <= mask16 {
 		e.writer.writeByte(0xc5)
-	} else if n < size32 {
+		e.writer.writeUint16(uint16(n))
+	} else if n <= mask32 {
 		e.writer.writeByte(0xc6)
+		e.writer.writeUint32(uint32(n))
 	} else {
-		return fmt.Errorf("bytes (%d bytes) is too long to encode", n)
+		return fmt.Errorf("byte slice (%d bytes) is too long to encode", n)
 	}
 	e.writer.writeBytes(v)
 	return nil
 }
 
-func (e *Encoder) PutInt(v int) {
-	if v >= -size5 && v < size7 {
+func (e *Encoder) PutFloat(v float64) {
+	// TODO: work out if and when encoding a float32 is acceptable!
+	e.PutFloat64(v)
+}
+
+func (e *Encoder) PutFloat32(v float32) {
+	e.writer.writeByte(0xca)
+	e.writer.writeFloat32(v)
+}
+
+func (e *Encoder) PutFloat64(v float64) {
+	e.writer.writeByte(0xcb)
+	e.writer.writeFloat64(v)
+}
+
+func (e *Encoder) PutInt(v int64) {
+	if v >= intFixMin && v <= intFixMax {
 		e.writer.writeInt8(int8(v))
-	} else if v >= -size8 && v < size8 {
+	} else if v >= int8Min && v <= int8Max {
 		e.writer.writeByte(0xd0)
 		e.writer.writeInt8(int8(v))
-	} else if v >= -size16 && v < size16 {
+	} else if v >= int16Min && v <= int16Max {
 		e.writer.writeByte(0xd1)
 		e.writer.writeInt16(int16(v))
-	} else if v >= -size32 && v < size32 {
+	} else if v >= int32Min && v <= int32Max {
 		e.writer.writeByte(0xd2)
 		e.writer.writeInt32(int32(v))
 	} else {
 		e.writer.writeByte(0xd3)
-		e.writer.writeInt64(int64(v))
+		e.writer.writeInt64(v)
 	}
 }
 
 func (e *Encoder) PutMapLength(v uint32) {
-	if v < size4 {
+	if v <= mask4 {
 		e.writer.writeByte(byte(0x80 | v))
-	} else if v < size16 {
+	} else if v <= mask16 {
 		e.writer.writeByte(0xde)
 		e.writer.writeUint16(uint16(v))
 	} else {
@@ -101,15 +113,15 @@ func (e *Encoder) PutNil() {
 func (e *Encoder) PutString(v string) error {
 	u := []byte(v)
 	n := len(u)
-	if n < size5 {
+	if n <= mask5 {
 		e.writer.writeByte(byte(0xa0 | n))
-	} else if n < size8 {
+	} else if n <= mask8 {
 		e.writer.writeByte(0xd9)
 		e.writer.writeUint8(uint8(n))
-	} else if n < size16 {
+	} else if n <= mask16 {
 		e.writer.writeByte(0xda)
 		e.writer.writeUint16(uint16(n))
-	} else if n < size32 {
+	} else if n <= mask32 {
 		e.writer.writeByte(0xdb)
 		e.writer.writeUint32(uint32(n))
 	} else {
@@ -122,14 +134,14 @@ func (e *Encoder) PutString(v string) error {
 func (e *Encoder) PutTime(v time.Time) {
 	sec := v.Unix()
 	nsec := v.Nanosecond()
-	if sec < 0 || sec >= size34 {
+	if sec < 0 || sec > mask34 {
 		//timestamp 96
 		e.writer.writeByte(0xc7)
 		e.writer.writeByte(12)
 		e.writer.writeByte(0xff)
 		e.writer.writeUint32(uint32(nsec))
 		e.writer.writeInt64(sec)
-	} else if sec >= size32 || nsec > 0 {
+	} else if sec > mask32 || nsec > 0 {
 		//timestamp 64
 		e.writer.writeByte(0xd7)
 		e.writer.writeByte(0xff)
@@ -143,20 +155,20 @@ func (e *Encoder) PutTime(v time.Time) {
 	}
 }
 
-func (e *Encoder) PutUint(v uint) {
-	if v < size7 {
+func (e *Encoder) PutUint(v uint64) {
+	if v <= mask7 {
 		e.writer.writeByte(byte(v))
-	} else if v < size8 {
+	} else if v <= mask8 {
 		e.writer.writeByte(0xcc)
 		e.writer.writeUint8(uint8(v))
-	} else if v < size16 {
+	} else if v <= mask16 {
 		e.writer.writeByte(0xcd)
 		e.writer.writeUint16(uint16(v))
-	} else if v < size32 {
+	} else if v <= mask32 {
 		e.writer.writeByte(0xce)
 		e.writer.writeUint32(uint32(v))
 	} else {
 		e.writer.writeByte(0xcf)
-		e.writer.writeUint64(uint64(v))
+		e.writer.writeUint64(v)
 	}
 }
