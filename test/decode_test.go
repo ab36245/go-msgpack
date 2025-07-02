@@ -9,23 +9,21 @@ import (
 )
 
 func TestDecodeInts(t *testing.T) {
-	me := msgpack.NewEncoder()
-	me.PutInt(0x45)
-	me.PutInt(0x1A4)
-
-	md := msgpack.NewDecoder(me.Bytes())
-
-	v1, _ := md.GetInt()
-	e1 := int64(69)
-	decodeTest(t, v1, e1)
-
-	v2, _ := md.GetInt()
-	e2 := int64(420)
-	decodeTest(t, v2, e2)
+	// fixint
+	{
+		me := msgpack.NewEncoder()
+		me.PutInt(69)
+		me.PutInt(-11)
+		md := msgpack.NewDecoder(me.Bytes())
+		v, _ := md.GetInt()
+		decodeTest(t, v, 69)
+		v, _ = md.GetInt()
+		decodeTest(t, v, -11)
+	}
 }
 
 func TestDecodeNil(t *testing.T) {
-	en := int64(69)
+	en := 69
 	es := "follows nil"
 	me := msgpack.NewEncoder()
 	me.PutInt(en)
@@ -39,7 +37,7 @@ func TestDecodeNil(t *testing.T) {
 	decodeTest(t, vb, eb)
 
 	vn, _ := md.GetInt()
-	decodeTest(t, vn, en)
+	decodeTest(t, vn, int64(en))
 
 	vb, _ = md.IfNil()
 	eb = true
@@ -50,29 +48,24 @@ func TestDecodeNil(t *testing.T) {
 }
 
 func TestDecodeString(t *testing.T) {
-	mp := msgpack.NewEncoder()
-	mp.PutString("malaka")
-	v := mp.Bytes()
-	e := `
-		|7 bytes
-    	|    0000 a6 6d 61 6c 61 6b 61
-	`
-	encodeTest(t, v, e)
+	e := "malaka was here"
+	me := msgpack.NewEncoder()
+	me.PutString(e)
+	md := msgpack.NewDecoder(me.Bytes())
+
+	v, _ := md.GetString()
+	decodeTest(t, v, e)
 }
 
 func TestDecodeTime(t *testing.T) {
-	mp := msgpack.NewEncoder()
+	e := "1997-08-28"
+	me := msgpack.NewEncoder()
+	d, _ := time.Parse(time.DateOnly, "1997-08-28")
+	me.PutTime(d)
+	md := msgpack.NewDecoder(me.Bytes())
 
-	when, _ := time.Parse(time.DateOnly, "1997-08-28")
-	secs := when.UnixMilli() / 1000
-	mp.PutInt(secs)
-	mp.PutTime(when)
-
-	v := mp.Bytes()
-	e := `
-		|11 bytes
-        |    0000 ce 34 04 bf 80 d6 ff 34 04 bf 80
-	`
+	d, _ = md.GetTime()
+	v := d.Format(time.DateOnly)
 	decodeTest(t, v, e)
 }
 
