@@ -52,17 +52,17 @@ func TestEncodeArrayLengths(t *testing.T) {
 }
 
 func TestEncodeBools(t *testing.T) {
-	{
-		me := msgpack.NewEncoder()
-		me.PutBool(true)
-		me.PutBool(false)
-		v := me.Bytes()
-		e := `
+	b1 := true
+	b2 := false
+	me := msgpack.NewEncoder()
+	me.PutBool(b1)
+	me.PutBool(b2)
+	v := me.Bytes()
+	e := `
 			|2 bytes
 			|    0000 c3 c2
 		`
-		encodeTest(t, v, e, false)
-	}
+	encodeTest(t, v, e, false)
 }
 
 func TestEncodeBytes(t *testing.T) {
@@ -118,7 +118,40 @@ func TestEncodeBytes(t *testing.T) {
 }
 
 func TestEncodeFloats(t *testing.T) {
-	t.Fatal("not implemeted")
+	// float 32
+	{
+		i1 := float32(85.125)
+		i2 := float32(85.3)
+		i3 := float32(0.00085125)
+		me := msgpack.NewEncoder()
+		me.PutFloat32(i1)
+		me.PutFloat32(i2)
+		me.PutFloat32(i3)
+		v := me.Bytes()
+		e := `
+			|15 bytes
+            |    0000 ca 42 aa 40 00 ca 42 aa 99 9a ca 3a 5f 26 6c
+		`
+		encodeTest(t, v, e, false)
+	}
+
+	// float 64
+	{
+		i1 := float64(85.125)
+		i2 := float64(85.3)
+		i3 := float64(0.00085125)
+		me := msgpack.NewEncoder()
+		me.PutFloat64(i1)
+		me.PutFloat64(i2)
+		me.PutFloat64(i3)
+		v := me.Bytes()
+		e := `
+			|27 bytes
+            |    0000 cb 40 55 48 00 00 00 00 00 cb 40 55 53 33 33 33
+            |    0016 33 33 cb 3f 4b e4 cd 74 92 79 14
+		`
+		encodeTest(t, v, e, false)
+	}
 }
 
 func TestEncodeInts(t *testing.T) {
@@ -239,7 +272,14 @@ func TestEncodeMapLengths(t *testing.T) {
 }
 
 func TestEncodeNil(t *testing.T) {
-	t.Fatal("not implemeted")
+	me := msgpack.NewEncoder()
+	me.PutNil()
+	v := me.Bytes()
+	e := `
+			|1 bytes
+			|    0000 c0
+		`
+	encodeTest(t, v, e, false)
 }
 
 func TestEncodeStrings(t *testing.T) {

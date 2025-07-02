@@ -62,7 +62,8 @@ func (e *Encoder) PutBytes(v []byte) error {
 }
 
 func (e *Encoder) PutFloat(v float64) {
-	// TODO: work out if and when encoding a float32 is acceptable!
+	// Try to work out if and when encoding a float32 is acceptable!
+	// TODO
 	e.PutFloat64(v)
 }
 

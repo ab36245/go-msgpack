@@ -28,10 +28,10 @@ func (r *reader) readBytes(n int) ([]byte, error) {
 	})
 }
 
-func (r *reader) readFloat32() (float64, error) {
-	return read(&r.bytes, 4, func(bytes []byte) float64 {
+func (r *reader) readFloat32() (float32, error) {
+	return read(&r.bytes, 4, func(bytes []byte) float32 {
 		u := binary.BigEndian.Uint32(bytes)
-		return float64(math.Float32frombits(u))
+		return math.Float32frombits(u)
 	})
 }
 
@@ -42,24 +42,21 @@ func (r *reader) readFloat64() (float64, error) {
 	})
 }
 
-func (r *reader) readInt8() (int64, error) {
-	return read(&r.bytes, 1, func(bytes []byte) int64 {
-		i := int8(bytes[0])
-		return int64(i)
+func (r *reader) readInt8() (int8, error) {
+	return read(&r.bytes, 1, func(bytes []byte) int8 {
+		return int8(bytes[0])
 	})
 }
 
-func (r *reader) readInt16() (int64, error) {
-	return read(&r.bytes, 2, func(bytes []byte) int64 {
-		i := int16(binary.BigEndian.Uint16(bytes))
-		return int64(i)
+func (r *reader) readInt16() (int16, error) {
+	return read(&r.bytes, 2, func(bytes []byte) int16 {
+		return int16(binary.BigEndian.Uint16(bytes))
 	})
 }
 
-func (r *reader) readInt32() (int64, error) {
-	return read(&r.bytes, 4, func(bytes []byte) int64 {
-		i := int32(binary.BigEndian.Uint32(bytes))
-		return int64(i)
+func (r *reader) readInt32() (int32, error) {
+	return read(&r.bytes, 4, func(bytes []byte) int32 {
+		return int32(binary.BigEndian.Uint32(bytes))
 	})
 }
 
@@ -69,21 +66,21 @@ func (r *reader) readInt64() (int64, error) {
 	})
 }
 
-func (r *reader) readUint8() (uint64, error) {
-	return read(&r.bytes, 1, func(bytes []byte) uint64 {
-		return uint64(bytes[0])
+func (r *reader) readUint8() (uint8, error) {
+	return read(&r.bytes, 1, func(bytes []byte) uint8 {
+		return bytes[0]
 	})
 }
 
-func (r *reader) readUint16() (uint64, error) {
-	return read(&r.bytes, 2, func(bytes []byte) uint64 {
-		return uint64(binary.BigEndian.Uint16(bytes))
+func (r *reader) readUint16() (uint16, error) {
+	return read(&r.bytes, 2, func(bytes []byte) uint16 {
+		return binary.BigEndian.Uint16(bytes)
 	})
 }
 
-func (r *reader) readUint32() (uint64, error) {
-	return read(&r.bytes, 4, func(bytes []byte) uint64 {
-		return uint64(binary.BigEndian.Uint32(bytes))
+func (r *reader) readUint32() (uint32, error) {
+	return read(&r.bytes, 4, func(bytes []byte) uint32 {
+		return binary.BigEndian.Uint32(bytes)
 	})
 }
 
