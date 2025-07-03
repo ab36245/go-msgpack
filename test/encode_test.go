@@ -12,9 +12,9 @@ import (
 
 func TestEncodeArrayLengths(t *testing.T) {
 	run := func(n int, e string) {
-		l1 := uint32(n)
+		l := uint32(n)
 		me := msgpack.NewEncoder()
-		me.PutArrayLength(l1)
+		me.PutArrayLength(l)
 		v := me.Bytes()
 		encodeTest(t, v, e, false)
 	}
@@ -46,13 +46,13 @@ func TestEncodeBools(t *testing.T) {
 		encodeTest(t, v, e, false)
 	}
 
-	run(true, `
-		|1 bytes
-		|    0000 c3
-	`)
 	run(false, `
 		|1 bytes
 		|    0000 c2
+	`)
+	run(true, `
+		|1 bytes
+		|    0000 c3
 	`)
 }
 
@@ -78,6 +78,7 @@ func TestEncodeBytes(t *testing.T) {
 	`)
 
 	// 32 bit length
+	// Note: this test is *slow*!
 	run(240000, `
 		|240005 bytes
 		|    0000 c6 00 03 a9 80 00 00
@@ -227,9 +228,9 @@ func TestEncodeNil(t *testing.T) {
 	me.PutNil()
 	v := me.Bytes()
 	e := `
-			|1 bytes
-			|    0000 c0
-		`
+		|1 bytes
+		|    0000 c0
+	`
 	encodeTest(t, v, e, false)
 }
 
@@ -294,15 +295,15 @@ func TestEncodeTimes(t *testing.T) {
 	`)
 
 	// timestamp64
-	run(time.Date(1995, 9, 12, 0, 0, 0, 420, loc), `
+	run(time.Date(1995, 9, 12, 0, 0, 0, 420000, loc), `
 		|10 bytes
-		|    0000 d7 ff 00 00 06 90 30 54 cd 80
+		|    0000 d7 ff 00 19 a2 80 30 54 cd 80
 	`)
 
 	// timestamp96
-	run(time.Date(1961, 10, 19, 0, 0, 0, 420, loc), `
+	run(time.Date(1961, 10, 19, 0, 0, 0, 420000, loc), `
 		|15 bytes
-		|    0000 c7 0c ff 00 00 01 a4 ff ff ff ff f0 92 32 00
+		|    0000 c7 0c ff 00 06 68 a0 ff ff ff ff f0 92 32 00
 	`)
 }
 
