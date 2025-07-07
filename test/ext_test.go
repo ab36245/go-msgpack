@@ -39,7 +39,7 @@ func TestExtUint(t *testing.T) {
 		})
 	})
 
-	t.Run("32 bit", func(t *testing.T) {
+	t.Run("fixext4", func(t *testing.T) {
 		t.Run("min", func(t *testing.T) {
 			run(t, 42, 65536, "d6 2a 00 01 00 00")
 		})
@@ -48,7 +48,7 @@ func TestExtUint(t *testing.T) {
 		})
 	})
 
-	t.Run("64 bit", func(t *testing.T) {
+	t.Run("fixext8", func(t *testing.T) {
 		t.Run("min", func(t *testing.T) {
 			run(t, 42, 4294967296, "d7 2a 00 00 00 01 00 00 00 00")
 		})
