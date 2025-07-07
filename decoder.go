@@ -89,6 +89,45 @@ func (d *Decoder) GetBytes() ([]byte, error) {
 	return d.reader.readBytes(size)
 }
 
+func (d *Decoder) GetExtUint() (byte, uint64, error) {
+	b, err := d.reader.readByte()
+	if err != nil {
+		return 0, 0, err
+	}
+	typ, err := d.reader.readByte()
+	if err != nil {
+		return 0, 0, err
+	}
+	switch b {
+	case 0xd4:
+		n, err := d.reader.readUint8()
+		if err != nil {
+			return 0, 0, err
+		}
+		return typ, uint64(n), nil
+	case 0xd5:
+		n, err := d.reader.readUint16()
+		if err != nil {
+			return 0, 0, err
+		}
+		return typ, uint64(n), nil
+	case 0xd6:
+		n, err := d.reader.readUint32()
+		if err != nil {
+			return 0, 0, err
+		}
+		return typ, uint64(n), nil
+	case 0xd7:
+		n, err := d.reader.readUint64()
+		if err != nil {
+			return 0, 0, err
+		}
+		return typ, n, nil
+	default:
+		return 0, 0, invalid("ext uint", b)
+	}
+}
+
 func (d *Decoder) GetFloat() (float64, error) {
 	b, err := d.reader.readByte()
 	if err != nil {

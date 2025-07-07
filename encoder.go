@@ -75,6 +75,26 @@ func (e *Encoder) PutBytes(v []byte) error {
 	return nil
 }
 
+func (e *Encoder) PutExtUint(typ uint8, v uint64) {
+	if v <= mask8 {
+		e.writer.writeByte(0xd4)
+		e.writer.writeByte(typ)
+		e.writer.writeUint8(uint8(v))
+	} else if v <= mask16 {
+		e.writer.writeByte(0xd5)
+		e.writer.writeByte(typ)
+		e.writer.writeUint16(uint16(v))
+	} else if v <= mask32 {
+		e.writer.writeByte(0xd6)
+		e.writer.writeByte(typ)
+		e.writer.writeUint32(uint32(v))
+	} else {
+		e.writer.writeByte(0xd7)
+		e.writer.writeByte(typ)
+		e.writer.writeUint64(v)
+	}
+}
+
 func (e *Encoder) PutFloat(v float64) {
 	// Try to work out if and when encoding a float32 is acceptable!
 	// TODO
