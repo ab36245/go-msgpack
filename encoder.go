@@ -15,6 +15,20 @@ type Encoder struct {
 	writer *writer
 }
 
+func (e *Encoder) AsString(maxLength int) string {
+	s := ""
+	for i, b := range e.writer.bytes {
+		if maxLength >= 0 && i >= maxLength {
+			break
+		}
+		if s != "" {
+			s += " "
+		}
+		s += fmt.Sprintf("%02x", b)
+	}
+	return s
+}
+
 func (e *Encoder) Bytes() []byte {
 	return e.writer.bytes
 }
