@@ -2,6 +2,7 @@ package msgpack
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -96,9 +97,29 @@ func (e *Encoder) PutExtUint(typ uint8, v uint64) {
 }
 
 func (e *Encoder) PutFloat(v float64) {
-	// Try to work out if and when encoding a float32 is acceptable!
-	// TODO
-	e.PutFloat64(v)
+	// Try to work out if encoding a single-precision IEEE754 value
+	// is acceptable!
+	ieee754 := math.Float64bits(v)
+
+	// ...check if the exponent is inside the range for single-precision
+	biasedExp := (ieee754 >> 52) & 0x7ff
+	unbiasedExp := int(biasedExp - 1023)
+	if unbiasedExp < -128 || unbiasedExp > 127 {
+		// nope!
+		e.PutFloat64(v)
+		return
+	}
+
+	// ...check if the least significant bits of the mantissa are zero
+	leastSignficantBits := ieee754 & ((1 << 29) - 1)
+	if leastSignficantBits != 0 {
+		// nope!
+		e.PutFloat64(v)
+		return
+	}
+
+	// ...it looks ok to only encode a single-precision (32 bit) version
+	e.PutFloat32(float32(v))
 }
 
 func (e *Encoder) PutFloat32(v float32) {
