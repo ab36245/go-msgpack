@@ -24,7 +24,7 @@ func (r *reader) readByte() (byte, error) {
 
 func (r *reader) readBytes(n int) ([]byte, error) {
 	return read(&r.bytes, n, func(bytes []byte) []byte {
-		return bytes
+		return bytes[0:n]
 	})
 }
 
