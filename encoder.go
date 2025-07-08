@@ -98,7 +98,7 @@ func (e *Encoder) PutExtUint(typ uint8, v uint64) {
 
 func (e *Encoder) PutFloat(v float64) {
 	// Try to work out if encoding a single-precision IEEE754 value
-	// is acceptable!
+	// is acceptable
 	ieee754 := math.Float64bits(v)
 
 	// ...check if the exponent is inside the range for single-precision
