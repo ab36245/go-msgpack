@@ -98,6 +98,6 @@ func TestFloat(t *testing.T) {
 	})
 
 	t.Run("3.1415", func(t *testing.T) {
-		run(t, 3.1415, "ca 40 49 0e 56")
+		run(t, 3.1415, "cb 40 09 21 ca c0 83 12 6f")
 	})
 }
