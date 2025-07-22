@@ -50,15 +50,7 @@ func (e *Encoder) PutArrayLength(v uint32) {
 	}
 }
 
-func (e *Encoder) PutBool(v bool) {
-	if !v {
-		e.writer.writeByte(0xc2)
-	} else {
-		e.writer.writeByte(0xc3)
-	}
-}
-
-func (e *Encoder) PutBytes(v []byte) error {
+func (e *Encoder) PutBinary(v []byte) error {
 	n := len(v)
 	if n <= mask8 {
 		e.writer.writeByte(0xc4)
@@ -74,6 +66,18 @@ func (e *Encoder) PutBytes(v []byte) error {
 	}
 	e.writer.writeBytes(v)
 	return nil
+}
+
+func (e *Encoder) PutBool(v bool) {
+	if !v {
+		e.writer.writeByte(0xc2)
+	} else {
+		e.writer.writeByte(0xc3)
+	}
+}
+
+func (e *Encoder) PutBytes(v []byte) {
+	e.writer.writeBytes(v)
 }
 
 func (e *Encoder) PutExtUint(typ uint8, v uint64) {

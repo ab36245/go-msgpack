@@ -6,11 +6,11 @@ import (
 	"github.com/ab36245/go-msgpack"
 )
 
-func TestBytes(t *testing.T) {
+func TestBinary(t *testing.T) {
 	run := func(t *testing.T, n int, e string) {
 		b := make([]byte, n)
 		mpe := msgpack.NewEncoder()
-		mpe.PutBytes(b)
+		mpe.PutBinary(b)
 		mps := (mpe.AsString(10))[:len(e)]
 		if mps != e {
 			report(t, mps, e)
@@ -49,7 +49,7 @@ func TestBytes(t *testing.T) {
 	t.Run("too big", func(t *testing.T) {
 		a := "expected an error but didn't get one"
 		mpe := msgpack.NewEncoder()
-		err := mpe.PutBytes(make([]byte, 4294967296))
+		err := mpe.PutBinary(make([]byte, 4294967296))
 		if err != nil {
 			a = err.Error()
 		}
