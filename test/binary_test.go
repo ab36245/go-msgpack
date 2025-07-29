@@ -16,7 +16,7 @@ func TestBinary(t *testing.T) {
 			report(t, mps, e)
 		}
 		mpd := msgpack.NewDecoder(mpe.Bytes())
-		a, _ := mpd.GetBytes()
+		a, _ := mpd.GetBinary()
 		if len(a) != n {
 			report(t, len(a), n)
 		}

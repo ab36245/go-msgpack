@@ -1,24 +1,23 @@
 package msgpack
 
 import (
+	"encoding/binary"
 	"fmt"
 	"math"
 	"time"
 )
 
 func NewEncoder() *Encoder {
-	return &Encoder{
-		writer: &writer{},
-	}
+	return &Encoder{}
 }
 
 type Encoder struct {
-	writer *writer
+	bytes []byte
 }
 
 func (e *Encoder) AsString(maxLength int) string {
 	s := ""
-	for i, b := range e.writer.bytes {
+	for i, b := range e.bytes {
 		if maxLength >= 0 && i >= maxLength {
 			break
 		}
@@ -31,72 +30,72 @@ func (e *Encoder) AsString(maxLength int) string {
 }
 
 func (e *Encoder) Bytes() []byte {
-	return e.writer.bytes
+	return e.bytes
 }
 
 func (e *Encoder) Clear() {
-	e.writer.clear()
+	e.bytes = nil
 }
 
 func (e *Encoder) PutArrayLength(v uint32) {
 	if v <= mask4 {
-		e.writer.writeByte(byte(0x90 | v))
+		e.writeByte(byte(0x90 | v))
 	} else if v <= mask16 {
-		e.writer.writeByte(0xdc)
-		e.writer.writeUint16(uint16(v))
+		e.writeByte(0xdc)
+		e.writeUint16(uint16(v))
 	} else {
-		e.writer.writeByte(0xdd)
-		e.writer.writeUint32(uint32(v))
+		e.writeByte(0xdd)
+		e.writeUint32(uint32(v))
 	}
 }
 
 func (e *Encoder) PutBinary(v []byte) error {
 	n := len(v)
 	if n <= mask8 {
-		e.writer.writeByte(0xc4)
-		e.writer.writeUint8(uint8(n))
+		e.writeByte(0xc4)
+		e.writeUint8(uint8(n))
 	} else if n <= mask16 {
-		e.writer.writeByte(0xc5)
-		e.writer.writeUint16(uint16(n))
+		e.writeByte(0xc5)
+		e.writeUint16(uint16(n))
 	} else if n <= mask32 {
-		e.writer.writeByte(0xc6)
-		e.writer.writeUint32(uint32(n))
+		e.writeByte(0xc6)
+		e.writeUint32(uint32(n))
 	} else {
 		return fmt.Errorf("byte slice (%d bytes) is too long to encode", n)
 	}
-	e.writer.writeBytes(v)
+	e.writeBytes(v)
 	return nil
 }
 
 func (e *Encoder) PutBool(v bool) {
 	if !v {
-		e.writer.writeByte(0xc2)
+		e.writeByte(0xc2)
 	} else {
-		e.writer.writeByte(0xc3)
+		e.writeByte(0xc3)
 	}
 }
 
 func (e *Encoder) PutBytes(v []byte) {
-	e.writer.writeBytes(v)
+	e.writeBytes(v)
 }
 
 func (e *Encoder) PutExtUint(typ uint8, v uint64) {
 	if v <= mask8 {
-		e.writer.writeByte(0xd4)
-		e.writer.writeByte(typ)
-		e.writer.writeUint8(uint8(v))
+		e.writeByte(0xd4)
+		e.writeByte(typ)
+		e.writeUint8(uint8(v))
 	} else if v <= mask16 {
-		e.writer.writeByte(0xd5)
-		e.writer.writeByte(typ)
-		e.writer.writeUint16(uint16(v))
+		e.writeByte(0xd5)
+		e.writeByte(typ)
+		e.writeUint16(uint16(v))
 	} else if v <= mask32 {
-		e.writer.writeByte(0xd6)
-		e.writer.writeByte(typ)
-		e.writer.writeUint32(uint32(v))
+		e.writeByte(0xd6)
+		e.writeByte(typ)
+		e.writeUint32(uint32(v))
 	} else {
-		e.writer.writeByte(0xd7)
-		e.writer.writeByte(typ)
-		e.writer.writeUint64(v)
+		e.writeByte(0xd7)
+		e.writeByte(typ)
+		e.writeUint64(v)
 	}
 }
 
@@ -127,67 +126,67 @@ func (e *Encoder) PutFloat(v float64) {
 }
 
 func (e *Encoder) PutFloat32(v float32) {
-	e.writer.writeByte(0xca)
-	e.writer.writeFloat32(v)
+	e.writeByte(0xca)
+	e.writeFloat32(v)
 }
 
 func (e *Encoder) PutFloat64(v float64) {
-	e.writer.writeByte(0xcb)
-	e.writer.writeFloat64(v)
+	e.writeByte(0xcb)
+	e.writeFloat64(v)
 }
 
 func (e *Encoder) PutInt(v int64) {
 	if v >= intFixMin && v <= intFixMax {
-		e.writer.writeInt8(int8(v))
+		e.writeInt8(int8(v))
 	} else if v >= int8Min && v <= int8Max {
-		e.writer.writeByte(0xd0)
-		e.writer.writeInt8(int8(v))
+		e.writeByte(0xd0)
+		e.writeInt8(int8(v))
 	} else if v >= int16Min && v <= int16Max {
-		e.writer.writeByte(0xd1)
-		e.writer.writeInt16(int16(v))
+		e.writeByte(0xd1)
+		e.writeInt16(int16(v))
 	} else if v >= int32Min && v <= int32Max {
-		e.writer.writeByte(0xd2)
-		e.writer.writeInt32(int32(v))
+		e.writeByte(0xd2)
+		e.writeInt32(int32(v))
 	} else {
-		e.writer.writeByte(0xd3)
-		e.writer.writeInt64(v)
+		e.writeByte(0xd3)
+		e.writeInt64(v)
 	}
 }
 
 func (e *Encoder) PutMapLength(v uint32) {
 	if v <= mask4 {
-		e.writer.writeByte(byte(0x80 | v))
+		e.writeByte(byte(0x80 | v))
 	} else if v <= mask16 {
-		e.writer.writeByte(0xde)
-		e.writer.writeUint16(uint16(v))
+		e.writeByte(0xde)
+		e.writeUint16(uint16(v))
 	} else {
-		e.writer.writeByte(0xdf)
-		e.writer.writeUint32(uint32(v))
+		e.writeByte(0xdf)
+		e.writeUint32(uint32(v))
 	}
 }
 
 func (e *Encoder) PutNil() {
-	e.writer.writeByte(0xc0)
+	e.writeByte(0xc0)
 }
 
 func (e *Encoder) PutString(v string) error {
 	u := []byte(v)
 	n := len(u)
 	if n <= mask5 {
-		e.writer.writeByte(byte(0xa0 | n))
+		e.writeByte(byte(0xa0 | n))
 	} else if n <= mask8 {
-		e.writer.writeByte(0xd9)
-		e.writer.writeUint8(uint8(n))
+		e.writeByte(0xd9)
+		e.writeUint8(uint8(n))
 	} else if n <= mask16 {
-		e.writer.writeByte(0xda)
-		e.writer.writeUint16(uint16(n))
+		e.writeByte(0xda)
+		e.writeUint16(uint16(n))
 	} else if n <= mask32 {
-		e.writer.writeByte(0xdb)
-		e.writer.writeUint32(uint32(n))
+		e.writeByte(0xdb)
+		e.writeUint32(uint32(n))
 	} else {
 		return fmt.Errorf("string (%d bytes) is too long to encode", n)
 	}
-	e.writer.writeBytes(u)
+	e.writeBytes(u)
 	return nil
 }
 
@@ -196,39 +195,109 @@ func (e *Encoder) PutTime(v time.Time) {
 	nsec := v.Nanosecond()
 	if sec < 0 || sec > mask34 {
 		//timestamp 96
-		e.writer.writeByte(0xc7)
-		e.writer.writeByte(12)
-		e.writer.writeByte(0xff)
-		e.writer.writeUint32(uint32(nsec))
-		e.writer.writeInt64(sec)
+		e.writeByte(0xc7)
+		e.writeByte(12)
+		e.writeByte(0xff)
+		e.writeUint32(uint32(nsec))
+		e.writeInt64(sec)
 	} else if sec > mask32 || nsec > 0 {
 		//timestamp 64
-		e.writer.writeByte(0xd7)
-		e.writer.writeByte(0xff)
+		e.writeByte(0xd7)
+		e.writeByte(0xff)
 		data64 := uint64(nsec)<<34 | uint64(sec)
-		e.writer.writeUint64(data64)
+		e.writeUint64(data64)
 	} else {
 		// timestamp 32
-		e.writer.writeByte(0xd6)
-		e.writer.writeByte(0xff)
-		e.writer.writeInt32(int32(sec))
+		e.writeByte(0xd6)
+		e.writeByte(0xff)
+		e.writeInt32(int32(sec))
 	}
 }
 
 func (e *Encoder) PutUint(v uint64) {
 	if v <= mask7 {
-		e.writer.writeByte(byte(v))
+		e.writeByte(byte(v))
 	} else if v <= mask8 {
-		e.writer.writeByte(0xcc)
-		e.writer.writeUint8(uint8(v))
+		e.writeByte(0xcc)
+		e.writeUint8(uint8(v))
 	} else if v <= mask16 {
-		e.writer.writeByte(0xcd)
-		e.writer.writeUint16(uint16(v))
+		e.writeByte(0xcd)
+		e.writeUint16(uint16(v))
 	} else if v <= mask32 {
-		e.writer.writeByte(0xce)
-		e.writer.writeUint32(uint32(v))
+		e.writeByte(0xce)
+		e.writeUint32(uint32(v))
 	} else {
-		e.writer.writeByte(0xcf)
-		e.writer.writeUint64(v)
+		e.writeByte(0xcf)
+		e.writeUint64(v)
 	}
+}
+
+func (e *Encoder) writeByte(v byte) {
+	e.bytes = append(e.bytes, v)
+}
+
+func (e *Encoder) writeBytes(v []byte) {
+	e.bytes = append(e.bytes, v...)
+}
+
+func (e *Encoder) writeFloat32(v float32) {
+	e.put32(math.Float32bits(v))
+}
+
+func (e *Encoder) writeFloat64(v float64) {
+	e.put64(math.Float64bits(v))
+}
+
+func (e *Encoder) writeInt8(v int8) {
+	e.put8(uint8(v))
+}
+
+func (e *Encoder) writeInt16(v int16) {
+	e.put16(uint16(v))
+}
+
+func (e *Encoder) writeInt32(v int32) {
+	e.put32(uint32(v))
+}
+
+func (e *Encoder) writeInt64(v int64) {
+	e.put64(uint64(v))
+}
+
+func (e *Encoder) writeUint8(v uint8) {
+	e.put8(v)
+}
+
+func (e *Encoder) writeUint16(v uint16) {
+	e.put16(v)
+}
+
+func (e *Encoder) writeUint32(v uint32) {
+	e.put32(v)
+}
+
+func (e *Encoder) writeUint64(v uint64) {
+	e.put64(v)
+}
+
+func (e *Encoder) put8(v uint8) {
+	e.bytes = append(e.bytes, v)
+}
+
+func (e *Encoder) put16(v uint16) {
+	b := make([]byte, 2)
+	binary.BigEndian.PutUint16(b, v)
+	e.bytes = append(e.bytes, b...)
+}
+
+func (e *Encoder) put32(v uint32) {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, v)
+	e.bytes = append(e.bytes, b...)
+}
+
+func (e *Encoder) put64(v uint64) {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, v)
+	e.bytes = append(e.bytes, b...)
 }
