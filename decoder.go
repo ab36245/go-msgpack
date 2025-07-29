@@ -17,6 +17,10 @@ type Decoder struct {
 	reader *reader
 }
 
+func (d *Decoder) Bytes() []byte {
+	return d.reader.bytes
+}
+
 func (d *Decoder) GetArrayLength() (uint32, error) {
 	b, err := d.reader.readByte()
 	if err != nil {
