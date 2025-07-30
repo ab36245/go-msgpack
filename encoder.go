@@ -15,6 +15,10 @@ type Encoder struct {
 	bytes []byte
 }
 
+func (e *Encoder) Bytes() []byte {
+	return e.bytes
+}
+
 func (e *Encoder) AsString(maxLength int) string {
 	s := ""
 	for i, b := range e.bytes {
@@ -27,10 +31,6 @@ func (e *Encoder) AsString(maxLength int) string {
 		s += fmt.Sprintf("%02x", b)
 	}
 	return s
-}
-
-func (e *Encoder) Bytes() []byte {
-	return e.bytes
 }
 
 func (e *Encoder) Clear() {
